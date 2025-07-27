@@ -22,6 +22,7 @@ contract PositionManager {
         uint256 currentTick; // Current active price level
         uint256 totalFees; // Fees earned so far
         uint256 createdAt;
+        bool isReleaseFunds;
         bool isActive;
         bytes32[] orderHashes; // References to off-chain orders
     }
@@ -47,6 +48,11 @@ contract PositionManager {
         bytes32 orderHash,
         uint256 price,
         uint256 amount
+    );
+
+    event FundsReleasedToSystem(
+        uint256 indexed positionId,
+        address indexed orderManager
     );
 
     modifier onlyOrderManager() {
@@ -85,6 +91,7 @@ contract PositionManager {
             currentTick: _priceLower, // Start at lower bound
             totalFees: 0,
             createdAt: block.timestamp,
+            isReleaseFunds: false,
             isActive: true,
             orderHashes: new bytes32[](0)
         });
@@ -133,5 +140,20 @@ contract PositionManager {
         position.orderHashes.push(_orderHash);
 
         emit OrderFilled(_positionId, _orderHash, _executionPrice, _amount);
+    }
+
+    function releaseFundsToSystem(
+        uint256 _positionId
+    ) external onlyOrderManager {
+        CLPosition storage position = positions[_positionId];
+        require(position.isActive, "Position already closed");
+        require(!position.isReleaseFunds, "Position has already release");
+
+        position.isReleaseFunds = true;
+        IERC20(position.tokenA).safeTransfer(
+            orderManager,
+            position.amountDeposited
+        );
+        emit FundsReleasedToSystem(_positionId, orderManager);
     }
 }
