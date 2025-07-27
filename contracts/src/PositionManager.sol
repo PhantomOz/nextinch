@@ -10,6 +10,7 @@ contract PositionManager {
     mapping(uint256 => CLPosition) public positions;
     mapping(address => uint256[]) public userPositions;
     uint256 public nextPositionId;
+    address orderManager;
 
     struct CLPosition {
         address owner;
@@ -40,6 +41,24 @@ contract PositionManager {
         uint256 finalValue,
         uint256 feesEarned
     );
+
+    event OrderFilled(
+        uint256 indexed positionId,
+        bytes32 orderHash,
+        uint256 price,
+        uint256 amount
+    );
+
+    modifier onlyOrderManager() {
+        if (msg.sender != orderManager) {
+            revert("Not Order Manager");
+        }
+        _;
+    }
+
+    constructor(address _orderManager) {
+        orderManager = _orderManager;
+    }
 
     function createPosition(
         address _tokenA,
@@ -96,5 +115,23 @@ contract PositionManager {
         uint256 finalValue = position.amountDeposited + position.totalFees;
 
         emit PositionClosed(_positionId, finalValue, position.totalFees);
+    }
+
+    function reportOrderFilled(
+        uint256 _positionId,
+        bytes32 _orderHash,
+        uint256 _executionPrice,
+        uint256 _amount,
+        uint256 _fees
+    ) external onlyOrderManager {
+        CLPosition storage position = positions[_positionId];
+        require(position.isActive, "Position not active");
+
+        // Update position state
+        position.currentTick = _executionPrice;
+        position.totalFees += _fees;
+        position.orderHashes.push(_orderHash);
+
+        emit OrderFilled(_positionId, _orderHash, _executionPrice, _amount);
     }
 }
