@@ -35,6 +35,12 @@ contract PositionManager {
         uint256 priceUpper
     );
 
+    event PositionClosed(
+        uint256 indexed positionId,
+        uint256 finalValue,
+        uint256 feesEarned
+    );
+
     function createPosition(
         address _tokenA,
         address _tokenB,
@@ -77,5 +83,18 @@ contract PositionManager {
         );
 
         return positionId;
+    }
+
+    function closePosition(uint256 _positionId) external {
+        CLPosition storage position = positions[_positionId];
+        require(position.owner == msg.sender, "Not position owner");
+        require(position.isActive, "Position already closed");
+
+        position.isActive = false;
+
+        // Calculate final value (simplified for demo)
+        uint256 finalValue = position.amountDeposited + position.totalFees;
+
+        emit PositionClosed(_positionId, finalValue, position.totalFees);
     }
 }
