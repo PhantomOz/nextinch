@@ -16,7 +16,8 @@ contract PositionManager {
         address owner;
         address tokenA;
         address tokenB;
-        uint256 amountDeposited;
+        uint256 amountSelling;
+        uint256 amountBuying;
         uint256 priceLower; // Price range lower bound
         uint256 priceUpper; // Price range upper bound
         uint256 currentTick; // Current active price level
@@ -32,16 +33,13 @@ contract PositionManager {
         address indexed owner,
         address tokenA,
         address tokenB,
-        uint256 amount,
+        uint256 amountSelling,
+        uint256 amountBuying,
         uint256 priceLower,
         uint256 priceUpper
     );
 
-    event PositionClosed(
-        uint256 indexed positionId,
-        uint256 finalValue,
-        uint256 feesEarned
-    );
+    event PositionClosed(uint256 indexed positionId);
 
     event OrderFilled(
         uint256 indexed positionId,
@@ -69,15 +67,22 @@ contract PositionManager {
     function createPosition(
         address _tokenA,
         address _tokenB,
-        uint256 _amount,
+        uint256 _amountSelling,
+        uint256 _amountBuying,
         uint256 _priceLower,
         uint256 _priceUpper
     ) external returns (uint256 positionId) {
         require(_priceLower < _priceUpper, "Invalid range");
-        require(_amount > 0, "Amount must be positive");
+        require(_priceLower > 0, "Invalid range");
+        require(_amountSelling > 0, "Amount must be positive");
+        require(_amountBuying > 0, "Amount must be positive");
 
         // Transfer tokens from user
-        IERC20(_tokenA).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(_tokenA).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _amountSelling
+        );
 
         positionId = nextPositionId++;
 
@@ -85,7 +90,8 @@ contract PositionManager {
             owner: msg.sender,
             tokenA: _tokenA,
             tokenB: _tokenB,
-            amountDeposited: _amount,
+            amountSelling: _amountSelling,
+            amountBuying: _amountBuying,
             priceLower: _priceLower,
             priceUpper: _priceUpper,
             currentTick: _priceLower, // Start at lower bound
@@ -103,7 +109,8 @@ contract PositionManager {
             msg.sender,
             _tokenA,
             _tokenB,
-            _amount,
+            _amountSelling,
+            _amountBuying,
             _priceLower,
             _priceUpper
         );
@@ -118,10 +125,7 @@ contract PositionManager {
 
         position.isActive = false;
 
-        // Calculate final value (simplified for demo)
-        uint256 finalValue = position.amountDeposited + position.totalFees;
-
-        emit PositionClosed(_positionId, finalValue, position.totalFees);
+        emit PositionClosed(_positionId);
     }
 
     function reportOrderFilled(
@@ -152,7 +156,7 @@ contract PositionManager {
         position.isReleaseFunds = true;
         IERC20(position.tokenA).safeTransfer(
             orderManager,
-            position.amountDeposited
+            position.amountSelling
         );
         emit FundsReleasedToSystem(_positionId, orderManager);
     }
