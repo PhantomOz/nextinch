@@ -19,7 +19,7 @@ const systemWallet = new ethers.Wallet(SYSTEM_PRIVATE_KEY, provider);
 
 const positionManagerContract = new ethers.Contract(
   POSITION_MANAGER_ADDRESS,
-  positionManagerABI,
+  positionManagerABI.positionManager,
   systemWallet
 );
 

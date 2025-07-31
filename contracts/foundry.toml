@@ -4,3 +4,11 @@ out = "out"
 libs = ["lib"]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+
+[rpc_endpoints]
+mainnet = "https://eth-mainnet.g.alchemy.com/v2/dzYYU-h9t0uo97yQrefKVeE3rzDEw3B2"
+polygon = "https://polygon-mainnet.g.alchemy.com/v2/dzYYU-h9t0uo97yQrefKVeE3rzDEw3B2"
+
+[fork]
+mainnet = { url = "${RPC_MAINNET}", block_number = 19400000 }
+polygon = { url = "${RPC_POLYGON}", block_number = 52000000 }
