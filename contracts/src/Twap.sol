@@ -8,8 +8,10 @@ contract TwapCore {
     using SafeERC20 for IERC20;
 
     // Order storage
+    address worker;
     mapping(bytes32 => TWAPOrder) public orders;
     mapping(address => bytes32[]) public userOrders;
+    mapping(address => bool) public isSupportedToken;
 
     // TWAP order structure
     struct TWAPOrder {
@@ -35,6 +37,13 @@ contract TwapCore {
     );
     event ChunkCompleted(bytes32 indexed orderId, uint256 chunkIndex);
     event OrderCancelled(bytes32 indexed orderId);
+
+    constructor(address _worker, address[] memory _supportedToken) {
+        worker = _worker;
+        for (uint8 i = 0; i < _supportedToken.length; i++) {
+            isSupportedToken[_supportedToken[i]] = true;
+        }
+    }
 
     /**
      * @notice Creates a new TWAP order
