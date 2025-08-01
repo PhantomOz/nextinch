@@ -130,6 +130,13 @@ class Worker {
       headers: { Authorization: `Bearer ${process.env.INCH_API_KEY}` },
     });
 
-    return response.data.toTokenAmount;
+    return response.data.dstAmount;
+  }
+
+  calculateMinAmount(price, amount, slippageBips) {
+    return (
+      (BigInt(price) * BigInt(amount) * (10000n - BigInt(slippageBips))) /
+      10000n
+    );
   }
 }
