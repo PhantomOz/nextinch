@@ -38,6 +38,13 @@ contract TwapCore {
     event ChunkCompleted(bytes32 indexed orderId, uint256 chunkIndex);
     event OrderCancelled(bytes32 indexed orderId);
 
+    modifier onlyWorker() {
+        if (msg.sender != worker) {
+            revert("Not Worker");
+        }
+        _;
+    }
+
     constructor(address _worker, address[] memory _supportedToken) {
         worker = _worker;
         for (uint8 i = 0; i < _supportedToken.length; i++) {
@@ -56,6 +63,10 @@ contract TwapCore {
         uint256 interval,
         uint256 slippageBips
     ) external returns (bytes32 orderId) {
+        require(
+            isSupportedToken[makerAsset] && isSupportedToken[takerAsset],
+            "Not A Supported Asset"
+        );
         require(chunks > 0 && chunks <= 20, "Invalid chunks");
         require(interval > 0, "Invalid interval");
         require(slippageBips < 500, "Slippage too high");
@@ -105,7 +116,10 @@ contract TwapCore {
     /**
      * @notice Called by worker after off-chain execution
      */
-    function completeChunk(bytes32 orderId, uint256 chunkIndex) external {
+    function completeChunk(
+        bytes32 orderId,
+        uint256 chunkIndex
+    ) external onlyWorker {
         TWAPOrder storage order = orders[orderId];
         require(!order.cancelled, "Order cancelled");
         require(chunkIndex == order.chunksExecuted, "Invalid chunk sequence");
