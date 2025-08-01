@@ -34,6 +34,7 @@ contract TwapCore {
         uint256 executeAfter
     );
     event ChunkCompleted(bytes32 indexed orderId, uint256 chunkIndex);
+    event OrderCancelled(bytes32 indexed orderId);
 
     /**
      * @notice Creates a new TWAP order
@@ -109,6 +110,25 @@ contract TwapCore {
         }
 
         emit ChunkCompleted(orderId, chunkIndex);
+    }
+
+    /**
+     * @notice Cancels order and returns remaining funds
+     */
+    function cancelOrder(bytes32 orderId) external {
+        TWAPOrder storage order = orders[orderId];
+        require(order.maker == msg.sender, "Not order maker");
+        require(!order.cancelled, "Already cancelled");
+
+        // Calculate remaining amount
+        uint256 remaining = order.totalAmount -
+            (order.chunksExecuted * order.chunkSize);
+        if (remaining > 0) {
+            IERC20(order.makerAsset).safeTransfer(order.maker, remaining);
+        }
+
+        order.cancelled = true;
+        emit OrderCancelled(orderId);
     }
 
     /**
