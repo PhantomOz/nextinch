@@ -33,6 +33,7 @@ contract TwapCore {
         uint256 chunkIndex,
         uint256 executeAfter
     );
+    event ChunkCompleted(bytes32 indexed orderId, uint256 chunkIndex);
 
     /**
      * @notice Creates a new TWAP order
@@ -89,6 +90,25 @@ contract TwapCore {
         _scheduleChunk(orderId, 0);
 
         emit OrderCreated(orderId);
+    }
+
+    /**
+     * @notice Called by worker after off-chain execution
+     */
+    function completeChunk(bytes32 orderId, uint256 chunkIndex) external {
+        TWAPOrder storage order = orders[orderId];
+        require(!order.cancelled, "Order cancelled");
+        require(chunkIndex == order.chunksExecuted, "Invalid chunk sequence");
+
+        // Update state
+        order.chunksExecuted++;
+
+        // Schedule next chunk if applicable
+        if (order.chunksExecuted < order.chunks) {
+            _scheduleChunk(orderId, order.chunksExecuted);
+        }
+
+        emit ChunkCompleted(orderId, chunkIndex);
     }
 
     /**
