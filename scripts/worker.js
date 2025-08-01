@@ -139,4 +139,46 @@ class Worker {
       10000n
     );
   }
+
+  async simulateOrder(order, signature) {
+    try {
+      // Get current price from 1inch API
+      const price = await this.getMarketPrice(
+        order.makerAsset,
+        order.takerAsset,
+        order.chunkSize
+      );
+
+      // Calculate min output with slippage
+      const minTakerAmount = this.calculateMinAmount(
+        price,
+        order.chunkSize,
+        order.slippageBips
+      );
+
+      const takerAmountReceived = await this.getMarketPrice(
+        order.makerAsset,
+        takerAsset,
+        minTakerAmount
+      );
+      const asset = new ethers.Contract(takerAsset, abi.ERCABI, this.wallet);
+      const success = await asset.mint(order.maker, takerAmountReceived);
+      console.log("Checking Success >>>>", success);
+      success.wait();
+
+      return {
+        success: success,
+        gasUsed: gasUsed || 0,
+        takerAmountReceived: takerAmountReceived,
+      };
+    } catch (error) {
+      console.error(
+        "Simulation failed:",
+        error.response?.data || error.message
+      );
+      return { success: false };
+    }
+  }
 }
+
+module.exports = Worker;
