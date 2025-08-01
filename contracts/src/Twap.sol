@@ -140,4 +140,17 @@ contract TwapCore {
 
         emit ChunkScheduled(orderId, chunkIndex, executeAfter);
     }
+
+    // View functions
+    function getUserOrders(
+        address user
+    ) external view returns (bytes32[] memory) {
+        return userOrders[user];
+    }
+
+    function getOrderDetails(
+        bytes32 orderId
+    ) external view returns (TWAPOrder memory) {
+        return orders[orderId];
+    }
 }
