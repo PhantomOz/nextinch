@@ -66,4 +66,16 @@ contract TwapCoreTest is Test {
         order = twapCore.getOrderDetails(orderId);
         assertTrue(order.cancelled);
     }
+
+    function testChunkRevertOnCancelled() public {
+        testOrderLifecycle();
+        bytes32 orderId = twapCore.getUserOrders(user)[0];
+
+        // Verify events emitted
+        vm.expectRevert();
+
+        // Worker completes first chunk
+        vm.startPrank(worker);
+        twapCore.completeChunk(orderId, 0);
+    }
 }
