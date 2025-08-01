@@ -116,4 +116,20 @@ class Worker {
       // Implement retry logic here
     }
   }
+
+  async getMarketPrice(makerAsset, takerAsset, amount) {
+    const url = `https://api.1inch.dev/swap/v6.1/8453/quote`;
+    const params = {
+      src: makerAsset,
+      dst: takerAsset,
+      amount: amount.toString(),
+    };
+
+    const response = await axios.get(url, {
+      params,
+      headers: { Authorization: `Bearer ${process.env.INCH_API_KEY}` },
+    });
+
+    return response.data.toTokenAmount;
+  }
 }
