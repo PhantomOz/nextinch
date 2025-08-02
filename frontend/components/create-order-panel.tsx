@@ -14,9 +14,14 @@ interface CreateOrderPanelProps {
   onClose: () => void
 }
 
+type TransferAsset = {
+  address: string,
+  symbol: string
+}
+
 export function CreateOrderPanel({ onClose }: CreateOrderPanelProps) {
-  const [fromToken, setFromToken] = useState("USDC")
-  const [toToken, setToToken] = useState("ETH")
+  const [fromToken, setFromToken] = useState<TransferAsset>()
+  const [toToken, setToToken] = useState<TransferAsset>()
   const [amount, setAmount] = useState("")
   const [chunks, setChunks] = useState([10])
   const [duration, setDuration] = useState("30")
@@ -59,7 +64,7 @@ export function CreateOrderPanel({ onClose }: CreateOrderPanelProps) {
             </Button>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 space-x-2">
             <Label className="text-slate-400">To</Label>
             <TokenSelector selectedToken={toToken} onTokenSelect={setToToken} />
           </div>

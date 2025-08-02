@@ -7,9 +7,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge"
 import { ChevronDown, Search } from "lucide-react"
 
+type TransferAsset = {
+  address: string,
+  symbol: string
+}
+
 interface TokenSelectorProps {
-  selectedToken: string
-  onTokenSelect: (token: string) => void
+  selectedToken: TransferAsset
+  onTokenSelect: (token: TransferAsset) => void
 }
 
 export function TokenSelector({ selectedToken, onTokenSelect }: TokenSelectorProps) {
@@ -17,12 +22,10 @@ export function TokenSelector({ selectedToken, onTokenSelect }: TokenSelectorPro
   const [search, setSearch] = useState("")
 
   const tokens = [
-    { symbol: "ETH", name: "Ethereum", balance: "2.45", logo: "🔷" },
-    { symbol: "USDC", name: "USD Coin", balance: "1,234.56", logo: "💵" },
-    { symbol: "USDT", name: "Tether", balance: "890.12", logo: "💰" },
-    { symbol: "WBTC", name: "Wrapped Bitcoin", balance: "0.15", logo: "₿" },
-    { symbol: "MATIC", name: "Polygon", balance: "5,678.90", logo: "🔮" },
-    { symbol: "BNB", name: "Binance Coin", balance: "12.34", logo: "🟡" },
+    { symbol: "WETH", name: "Wrapped Ether", balance: "2.45", logo: "🔷", address: "0x8388d11770031E6a4A113A0D8aFa2226323F0bCb" },
+    { symbol: "USDC", name: "USD Coin", balance: "1,234.56", logo: "💵", address: "0x5Aa8F9123B3Bdf340F33DBfA5A5A8EF6654438EC" },
+    { symbol: "WBTC", name: "Wrapped Bitcoin", balance: "0.15", logo: "₿", address: "0xD87993eb709c1ADf214EF4648d560ADeABc7AdA3" },
+    { symbol: "DAI", name: "DAI", balance: "12.34", logo: "🟡", address: "0x75fDf32739e8701B7AF7E40aD888440BEE93fbc1" },
   ]
 
   const filteredTokens = tokens.filter(
@@ -31,14 +34,13 @@ export function TokenSelector({ selectedToken, onTokenSelect }: TokenSelectorPro
       token.name.toLowerCase().includes(search.toLowerCase()),
   )
 
-  const commonTokens = ["ETH", "USDC", "USDT", "WBTC"]
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700">
-          <span className="mr-2">{tokens.find((t) => t.symbol === selectedToken)?.logo}</span>
-          {selectedToken}
+          <span className="mr-2">{tokens.find((t) => t.symbol === selectedToken.symbol)?.logo}</span>
+          {selectedToken.symbol}
           <ChevronDown className="w-4 h-4 ml-2" />
         </Button>
       </DialogTrigger>
@@ -63,9 +65,9 @@ export function TokenSelector({ selectedToken, onTokenSelect }: TokenSelectorPro
           <div className="space-y-2">
             <div className="text-sm text-slate-400">Common tokens</div>
             <div className="flex flex-wrap gap-2">
-              {commonTokens.map((token) => (
+              {tokens.map((token) => (
                 <Badge
-                  key={token}
+                  key={token.symbol}
                   variant="outline"
                   className="cursor-pointer border-slate-700 hover:bg-slate-800"
                   onClick={() => {
@@ -73,7 +75,7 @@ export function TokenSelector({ selectedToken, onTokenSelect }: TokenSelectorPro
                     setOpen(false)
                   }}
                 >
-                  {tokens.find((t) => t.symbol === token)?.logo} {token}
+                  {tokens.find((t) => t.symbol === token.symbol)?.logo} {token.symbol}
                 </Badge>
               ))}
             </div>
@@ -86,7 +88,7 @@ export function TokenSelector({ selectedToken, onTokenSelect }: TokenSelectorPro
                 key={token.symbol}
                 className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-800 cursor-pointer"
                 onClick={() => {
-                  onTokenSelect(token.symbol)
+                  onTokenSelect(token)
                   setOpen(false)
                 }}
               >
