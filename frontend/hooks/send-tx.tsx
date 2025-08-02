@@ -18,10 +18,13 @@ export default function useSendTx() {
         const twapAddress = process.env.NEXT_PUBLIC_TWAP_ADDRESS;
         // The Contract object
         const twapContract = new Contract(twapAddress, twapAbi.twap, signer);
+        const ercContract = new Contract(makerAsset, twapAbi.ERCABI, signer);
+        const approvalTx = await ercContract.approve(twapAddress, BigInt(totalAmount));
+        approvalTx.wait();
         const twapCreateTx = await twapContract.createTWAPOrder(
             makerAsset,
             takerAsset,
-            totalAmount,
+            BigInt(totalAmount),
             chunks,
             interval,
             slippageBips
