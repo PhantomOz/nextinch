@@ -2,11 +2,12 @@ import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import './globals.css'
+import { AppKit } from '@/context/Appkit'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'Nextinch TWAP',
+  description: 'A TWAP For 1inch Limit Order Protocol',
+  generator: 'Nextinch TWAP',
 }
 
 export default function RootLayout({
@@ -25,7 +26,7 @@ html {
 }
         `}</style>
       </head>
-      <body>{children}</body>
+      <body><AppKit>{children}</AppKit></body>
     </html>
   )
 }

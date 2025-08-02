@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ChevronDown, Wallet, FileText, BarChart3, Plus } from "lucide-react"
+import ConnectButton from "@/hooks/connect-button"
 
 interface HeaderProps {
   onCreateOrder: () => void
@@ -76,21 +77,8 @@ export function Header({ onCreateOrder }: HeaderProps) {
             </DropdownMenu>
 
             {/* Wallet Connection */}
-            {isConnected ? (
-              <div className="flex items-center space-x-2">
-                <Badge variant="secondary" className="bg-[#00D395] text-black">
-                  2.45 ETH
-                </Badge>
-                <Button variant="outline" className="border-slate-700 bg-slate-800">
-                  0x1234...5678
-                </Button>
-              </div>
-            ) : (
-              <Button onClick={() => setIsConnected(true)} className="bg-[#2D6EE6] hover:bg-[#2D6EE6]/80">
-                <Wallet className="w-4 h-4 mr-2" />
-                Connect Wallet
-              </Button>
-            )}
+            <ConnectButton />
+
           </div>
         </div>
       </div>
