@@ -9,6 +9,8 @@ import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TokenSelector } from "@/components/token-selector"
 import { X, ArrowDownUp, Clock, Zap } from "lucide-react"
+import useSendTx from "@/hooks/send-tx"
+import { toast } from "sonner"
 
 interface CreateOrderPanelProps {
   onClose: () => void
@@ -16,12 +18,14 @@ interface CreateOrderPanelProps {
 
 type TransferAsset = {
   address: string,
-  symbol: string
+  symbol: string,
+  decimals: number
 }
 
 export function CreateOrderPanel({ onClose }: CreateOrderPanelProps) {
-  const [fromToken, setFromToken] = useState<TransferAsset>()
-  const [toToken, setToToken] = useState<TransferAsset>()
+  const { sendTx } = useSendTx();
+  const [fromToken, setFromToken] = useState<TransferAsset>({ symbol: "WETH", address: "", decimals: 18 })
+  const [toToken, setToToken] = useState<TransferAsset>({ symbol: "USDC", address: "", decimals: 6 })
   const [amount, setAmount] = useState("")
   const [chunks, setChunks] = useState([10])
   const [duration, setDuration] = useState("30")
@@ -29,6 +33,45 @@ export function CreateOrderPanel({ onClose }: CreateOrderPanelProps) {
   const [slippage, setSlippage] = useState("1")
 
   const slippageOptions = ["0.5", "1", "2", "5"]
+
+  const createOrder = () => {
+    console.log("Working On Orders");
+    toast.loading("Creating Order.....");
+
+    if (fromToken.address === "" || toToken.address == "") {
+      toast.error("Select An Asset");
+      return
+    }
+    if (Number(amount) <= 0) {
+      toast.error("put a real amount");
+      return
+    }
+    if (Number(duration) <= 1) {
+      toast.error("minimum duration is 1");
+      return
+    }
+    if (Number(slippage) <= 0) {
+      toast.error("Slippage won't work");
+      return;
+    }
+
+    let finalDuration = 0;
+    if (durationUnit == "minutes") {
+      finalDuration = Number(duration) * 60;
+    } else {
+      finalDuration = Number(duration) * 60 * 60;
+    }
+
+    let finalSlippage = Number(slippage) * 100;
+
+    console.log("This is amount >>>", amount);
+    console.log((10 ** Number(fromToken.decimals)));
+    let finalAmount = Number(amount) * (10 ** fromToken.decimals);
+    console.log("This is final amount >>>", finalAmount);
+
+
+    sendTx(fromToken.address, toToken.address, Number(finalAmount), chunks[0], Number(finalDuration), Number(finalSlippage));
+  }
 
   return (
     <Card className="bg-slate-900 border-slate-800">
@@ -148,7 +191,7 @@ export function CreateOrderPanel({ onClose }: CreateOrderPanelProps) {
         </div>
 
         {/* Create Order Button */}
-        <Button className="w-full bg-[#2D6EE6] hover:bg-[#2D6EE6]/80 text-white">
+        <Button className="w-full bg-[#2D6EE6] hover:bg-[#2D6EE6]/80 text-white" onClick={createOrder}>
           <Zap className="w-4 h-4 mr-2" />
           Create TWAP Order
         </Button>

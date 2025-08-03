@@ -20,7 +20,7 @@ export default function ConnectButton() {
                 setBalance(x);
             });
         }
-    }, [fetchBalance, isConnected]);
+    }, [isConnected]);
 
     return (
         <>

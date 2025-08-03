@@ -9,10 +9,10 @@ const projectId = "b30c52a8788617b7b3482e9136a49088";
 
 // 2. Create a metadata object
 const metadata = {
-    name: "My Website",
+    name: "Nextinch",
     description: "My Website description",
-    url: "https://mywebsite.com", // origin must match your domain & subdomain
-    icons: ["https://avatars.mywebsite.com/"],
+    url: "http://localhost:3000", // origin must match your domain & subdomain
+    icons: ["http://localhost:3000/placeholder-logo.png"],
 };
 
 // 3. Create the AppKit instance
@@ -22,7 +22,7 @@ createAppKit({
     networks: [baseSepolia],
     projectId,
     features: {
-        analytics: true, // Optional - defaults to your Cloud configuration
+        analytics: false, // Optional - defaults to your Cloud configuration
     },
 });
 
