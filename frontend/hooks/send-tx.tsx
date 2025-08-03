@@ -96,6 +96,13 @@ export default function useSendTx() {
         }
     }
 
+    const tokens = [
+        { symbol: "WETH", name: "Wrapped Ether", balance: "2.45", logo: "🔷", address: "0x8388d11770031E6a4A113A0D8aFa2226323F0bCb", decimals: 18 },
+        { symbol: "USDC", name: "USD Coin", balance: "1,234.56", logo: "💵", address: "0x5Aa8F9123B3Bdf340F33DBfA5A5A8EF6654438EC", decimals: 6 },
+        { symbol: "WBTC", name: "Wrapped Bitcoin", balance: "0.15", logo: "₿", address: "0xD87993eb709c1ADf214EF4648d560ADeABc7AdA3", decimals: 8 },
+        { symbol: "DAI", name: "DAI", balance: "12.34", logo: "🟡", address: "0x75fDf32739e8701B7AF7E40aD888440BEE93fbc1", decimals: 18 },
+    ]
+
     const getUserOrders = async () => {
         if (!isConnected) {
             toast.error("Please connect your wallet");
@@ -123,11 +130,14 @@ export default function useSendTx() {
         for (let i = 0; i < twapOrders.length; i++) {
             const orderdetail = await getOrderDetails(twapOrders[i]);
             const [pair, type] = await getOrderPairType(orderdetail.makerAsset, orderdetail.takerAsset);
+            const makerAsset = tokens.find(token => token.address === orderdetail.makerAsset);
+            const makerDecimal = makerAsset?.decimals;
+
             const detail = {
                 id: twapOrders[i],
                 pair,
                 type,
-                amount: orderdetail.totalAmount,
+                amount: `${ethers.formatUnits(orderdetail.totalAmount, makerDecimal)} ${makerAsset?.symbol}`,
                 progress: Number(orderdetail.chunksExecuted) * 100 / Number(orderdetail.chunks),
                 chunksExecuted: orderdetail.chunksExecuted,
                 totalChunks: orderdetail.chunks,
@@ -141,12 +151,7 @@ export default function useSendTx() {
         return allUsersOrder;
     }
 
-    const tokens = [
-        { symbol: "WETH", name: "Wrapped Ether", balance: "2.45", logo: "🔷", address: "0x8388d11770031E6a4A113A0D8aFa2226323F0bCb", decimals: 18 },
-        { symbol: "USDC", name: "USD Coin", balance: "1,234.56", logo: "💵", address: "0x5Aa8F9123B3Bdf340F33DBfA5A5A8EF6654438EC", decimals: 6 },
-        { symbol: "WBTC", name: "Wrapped Bitcoin", balance: "0.15", logo: "₿", address: "0xD87993eb709c1ADf214EF4648d560ADeABc7AdA3", decimals: 8 },
-        { symbol: "DAI", name: "DAI", balance: "12.34", logo: "🟡", address: "0x75fDf32739e8701B7AF7E40aD888440BEE93fbc1", decimals: 18 },
-    ]
+
 
     function getOrderPairType(maker: string, taker: string): any {
         const makerToken = tokens.find(token => token.address === maker);
