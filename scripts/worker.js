@@ -7,14 +7,17 @@ const {
   Sdk,
   randBigInt,
   FetchProviderConnector,
-} = "@1inch/limit-order-sdk";
+} = require("@1inch/limit-order-sdk");
+const axios = require("axios");
 
 class Worker {
-  constructor(rpcUrl, contractAddress, privateKey, networkId, authKey) {
+  constructor(rpcUrl, contractAddress, privateKey, networkId, authKey, wss) {
     console.log(rpcUrl, contractAddress, privateKey, networkId, authKey);
     this.provider = new ethers.JsonRpcProvider(rpcUrl);
+    this.wss = new ethers.WebSocketProvider(wss);
     this.wallet = new ethers.Wallet(privateKey, this.provider);
     this.contract = new ethers.Contract(contractAddress, abi.twap, this.wallet);
+    this.wssContract = new ethers.Contract(contractAddress, abi.twap, this.wss);
     this.networkId = networkId;
     this.authKey = authKey;
   }
@@ -23,14 +26,14 @@ class Worker {
     console.log("TWAP Worker started");
 
     // Listen for chunk scheduling events
-    this.contract.on(
+    this.wssContract.on(
       "ChunkScheduled",
       async (orderId, chunkIndex, executeAfter) => {
         try {
           console.log(`New chunk scheduled: ${orderId} index ${chunkIndex}`);
 
           // Wait until execution time
-          const delay = executeAfter * 1000 - Date.now();
+          const delay = Number(executeAfter) * 1000 - Date.now();
           if (delay > 0) {
             await new Promise((resolve) => setTimeout(resolve, delay));
           }
@@ -65,29 +68,29 @@ class Worker {
       order.slippageBips
     );
 
-    const expiration = Math.floor(Date.now() / 1000) + order.interval * 2;
-
-    const UINT_40_MAX = (1n << 48n) - 1n;
+    const expiration =
+      Math.floor(Date.now() / 1000) + Number(order.interval) * 2;
 
     // see MakerTraits.ts
-    const makerTraits = MakerTraits.default()
-      .withExpiration(expiration)
-      .withNonce(randBigInt(UINT_40_MAX));
-
-    const sdk = new Sdk({
-      authKey: this.authKey,
-      networkId: this.networkId,
-      httpConnector: new FetchProviderConnector(),
-    });
-
+    const makerTraits = MakerTraits.default();
     // Build limit order
-    const Order = sdk.createOrder(
+    const liveTokens = {
+      "0x8388d11770031E6a4A113A0D8aFa2226323F0bCb":
+        "0x4200000000000000000000000000000000000006",
+      "0x5Aa8F9123B3Bdf340F33DBfA5A5A8EF6654438EC":
+        "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "0xD87993eb709c1ADf214EF4648d560ADeABc7AdA3":
+        "0x0555E30da8f98308EdB960aa94C0Db47230d2B9c",
+      "0x75fDf32739e8701B7AF7E40aD888440BEE93fbc1":
+        "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
+    };
+    const Order = new LimitOrder(
       {
-        makerAsset: new Address(order.makerAsset),
-        takerAsset: new Address(order.takerAsset),
+        makerAsset: new Address(liveTokens[order.makerAsset]),
+        takerAsset: new Address(liveTokens[order.takerAsset]),
         makingAmount: BigInt(order.chunkSize.toString()),
         takingAmount: BigInt(minTakerAmount.toString()),
-        maker: this.contract.address,
+        maker: new Address(this.wallet.address),
         receiver: new Address(order.maker),
       },
       makerTraits
@@ -95,14 +98,14 @@ class Worker {
 
     // Sign order
     const typedData = Order.getTypedData();
-    const signature = await maker.signTypedData(
+    const signature = await this.wallet.signTypedData(
       typedData.domain,
       { Order: typedData.types.Order },
       typedData.message
     );
 
     // Simulate order (using 1inch API)
-    const simulation = await this.simulateOrder(Order, signature);
+    const simulation = await this.simulateOrder(order, signature);
 
     if (simulation.success) {
       console.log(`Chunk ${chunkIndex} simulated successfully`);
@@ -119,19 +122,34 @@ class Worker {
   }
 
   async getMarketPrice(makerAsset, takerAsset, amount) {
-    const url = `https://api.1inch.dev/swap/v6.1/8453/quote`;
-    const params = {
-      src: makerAsset,
-      dst: takerAsset,
-      amount: amount.toString(),
+    const liveTokens = {
+      "0x8388d11770031E6a4A113A0D8aFa2226323F0bCb":
+        "0x4200000000000000000000000000000000000006",
+      "0x5Aa8F9123B3Bdf340F33DBfA5A5A8EF6654438EC":
+        "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "0xD87993eb709c1ADf214EF4648d560ADeABc7AdA3":
+        "0x0555E30da8f98308EdB960aa94C0Db47230d2B9c",
+      "0x75fDf32739e8701B7AF7E40aD888440BEE93fbc1":
+        "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
     };
+    try {
+      const url = `https://api.1inch.dev/swap/v6.1/8453/quote`;
+      const params = {
+        src: liveTokens[makerAsset],
+        dst: liveTokens[takerAsset],
+        amount: amount.toString(),
+      };
 
-    const response = await axios.get(url, {
-      params,
-      headers: { Authorization: `Bearer ${process.env.INCH_API_KEY}` },
-    });
+      const response = await axios.get(url, {
+        params,
+        headers: { Authorization: `Bearer ${this.authKey}` },
+      });
 
-    return response.data.dstAmount;
+      return response.data.dstAmount;
+    } catch (error) {
+      console.log(error.message);
+      return 3000000000;
+    }
   }
 
   calculateMinAmount(price, amount, slippageBips) {
@@ -142,7 +160,9 @@ class Worker {
   }
 
   async simulateOrder(order, signature) {
+    console.log(order);
     try {
+      console.log(order.makerAsset, order.takerAsset, order.chunkSize);
       // Get current price from 1inch API
       const price = await this.getMarketPrice(
         order.makerAsset,
@@ -159,17 +179,21 @@ class Worker {
 
       const takerAmountReceived = await this.getMarketPrice(
         order.makerAsset,
-        takerAsset,
+        order.takerAsset,
         minTakerAmount
       );
-      const asset = new ethers.Contract(takerAsset, abi.ERCABI, this.wallet);
+      const asset = new ethers.Contract(
+        order.takerAsset,
+        abi.ERCABI,
+        this.wallet
+      );
       const success = await asset.mint(order.maker, takerAmountReceived);
       console.log("Checking Success >>>>", success);
       success.wait();
 
       return {
         success: success,
-        gasUsed: gasUsed || 0,
+        gasUsed: success.gasPrice || 0,
         takerAmountReceived: takerAmountReceived,
       };
     } catch (error) {

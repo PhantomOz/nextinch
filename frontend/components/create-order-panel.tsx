@@ -60,7 +60,7 @@ export function CreateOrderPanel({ onClose }: CreateOrderPanelProps) {
       toast.error("put a real amount");
       return
     }
-    if (Number(duration) <= 1) {
+    if (Number(duration) < 1) {
       toast.error("minimum duration is 1");
       return
     }

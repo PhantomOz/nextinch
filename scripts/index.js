@@ -16,6 +16,7 @@ const worker = new Worker(
   process.env.CONTRACT_ADDRESS,
   process.env.WORKER_PK,
   process.env.CHAIN_ID,
-  process.env.INCH_API_KEY
+  process.env.INCH_API_KEY,
+  process.env.WSS
 );
 worker.start();
