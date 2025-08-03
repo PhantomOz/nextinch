@@ -1,15 +1,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import useSendTx from "@/hooks/send-tx";
+import { useAppKitAccount } from "@reown/appkit/react"
 import { TrendingUp, Clock, CheckCircle, DollarSign } from "lucide-react"
+import { useEffect } from "react"
 
 export function PortfolioSummary() {
+  const { address, isConnected } =
+    useAppKitAccount();
+  const { getUserOrders } = useSendTx();
+
   const stats = [
-    {
-      title: "Total Portfolio Value",
-      value: "$24,567.89",
-      change: "+12.5%",
-      icon: DollarSign,
-      positive: true,
-    },
+    // {
+    //   title: "Total Portfolio Value",
+    //   value: "$24,567.89",
+    //   change: "+12.5%",
+    //   icon: DollarSign,
+    //   positive: true,
+    // },
     {
       title: "Active Orders",
       value: "8",
@@ -24,14 +31,29 @@ export function PortfolioSummary() {
       icon: CheckCircle,
       positive: true,
     },
-    {
-      title: "Total Volume",
-      value: "$1.2M",
-      change: "+8.3%",
-      icon: TrendingUp,
-      positive: true,
-    },
+    // {
+    //   title: "Total Volume",
+    //   value: "$1.2M",
+    //   change: "+8.3%",
+    //   icon: TrendingUp,
+    //   positive: true,
+    // },
   ]
+
+  useEffect(() => {
+    if (isConnected) {
+      getUserOrders().then(orders => {
+        const active = orders?.filter(order => order.status === "Active");
+        stats[0].value = String(active?.length) || "-";
+        stats[0].change = String(`${active?.length} executing`) || "";
+
+        const completed = orders?.filter(order => order.status === "Completed");
+        stats[1].value = String(completed?.length) || "-";
+        stats[1].change = "";
+      })
+    }
+
+  }, [isConnected])
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

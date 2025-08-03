@@ -23,12 +23,12 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-2 space-y-6">
             <OrderTable onViewOrder={setSelectedOrder} />
-            <PriceChart />
+            {/* <PriceChart /> */}
           </div>
 
           <div className="space-y-6">
             {showCreateOrder && <CreateOrderPanel onClose={() => setShowCreateOrder(false)} />}
-            <RecentActivity />
+            {/* <RecentActivity /> */}
           </div>
         </div>
       </main>
