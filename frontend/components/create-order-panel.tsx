@@ -184,11 +184,11 @@ export function CreateOrderPanel({ onClose }: CreateOrderPanelProps) {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-slate-400">Estimated Received:</span>
-              <span className="text-white">~0.42 ETH</span>
+              <span className="text-white">~0.00 {toToken.symbol}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Gas Cost:</span>
-              <span className="text-white">~$12.50</span>
+              <span className="text-white">~$0.01</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Total Duration:</span>

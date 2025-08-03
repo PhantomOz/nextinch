@@ -22,11 +22,12 @@ export function TokenSelector({ selectedToken, onTokenSelect }: TokenSelectorPro
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
 
+
   const tokens = [
-    { symbol: "WETH", name: "Wrapped Ether", balance: "2.45", logo: "🔷", address: "0x8388d11770031E6a4A113A0D8aFa2226323F0bCb", decimals: 18 },
-    { symbol: "USDC", name: "USD Coin", balance: "1,234.56", logo: "💵", address: "0x5Aa8F9123B3Bdf340F33DBfA5A5A8EF6654438EC", decimals: 6 },
-    { symbol: "WBTC", name: "Wrapped Bitcoin", balance: "0.15", logo: "₿", address: "0xD87993eb709c1ADf214EF4648d560ADeABc7AdA3", decimals: 8 },
-    { symbol: "DAI", name: "DAI", balance: "12.34", logo: "🟡", address: "0x75fDf32739e8701B7AF7E40aD888440BEE93fbc1", decimals: 18 },
+    { symbol: "WETH", name: "Wrapped Ether", balance: "-", logo: "🔷", address: "0x8388d11770031E6a4A113A0D8aFa2226323F0bCb", decimals: 18 },
+    { symbol: "USDC", name: "USD Coin", balance: "-", logo: "💵", address: "0x5Aa8F9123B3Bdf340F33DBfA5A5A8EF6654438EC", decimals: 6 },
+    { symbol: "WBTC", name: "Wrapped Bitcoin", balance: "-", logo: "₿", address: "0xD87993eb709c1ADf214EF4648d560ADeABc7AdA3", decimals: 8 },
+    { symbol: "DAI", name: "DAI", balance: "-", logo: "🟡", address: "0x75fDf32739e8701B7AF7E40aD888440BEE93fbc1", decimals: 18 },
   ]
 
   const filteredTokens = tokens.filter(
