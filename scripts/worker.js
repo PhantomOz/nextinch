@@ -12,7 +12,6 @@ const axios = require("axios");
 
 class Worker {
   constructor(rpcUrl, contractAddress, privateKey, networkId, authKey, wss) {
-    console.log(rpcUrl, contractAddress, privateKey, networkId, authKey);
     this.provider = new ethers.JsonRpcProvider(rpcUrl);
     this.wss = new ethers.WebSocketProvider(wss);
     this.wallet = new ethers.Wallet(privateKey, this.provider);
