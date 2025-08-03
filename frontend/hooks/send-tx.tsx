@@ -37,6 +37,7 @@ export default function useSendTx() {
                 slippageBips
             );
             twapCreateTx.wait();
+            toast.success("Successfully Created TWAP Order");
         }, 5000)
 
         twapContract.on(
@@ -58,6 +59,8 @@ export default function useSendTx() {
             return;
         };
 
+        toast.loading("Cancelling TWAP Order");
+
         const ethersProvider = new BrowserProvider(walletProvider as any);
         const signer = await ethersProvider.getSigner();
         const twapAddress = process.env.NEXT_PUBLIC_TWAP_ADDRESS;
@@ -66,6 +69,8 @@ export default function useSendTx() {
         const twapCancelTx = await twapContract.cancelOrder(orderId);
 
         console.log(twapCancelTx);
+
+        toast.success("Successfully Cancelled TWAP Order");
     }
 
     const tokenPairs = {

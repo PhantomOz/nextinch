@@ -8,6 +8,7 @@ import { CreateOrderPanel } from "@/components/create-order-panel"
 import { PriceChart } from "@/components/price-chart"
 import { RecentActivity } from "@/components/recent-activity"
 import { OrderDetailModal } from "@/components/order-detail-modal"
+import { Toaster } from "sonner"
 
 export default function Dashboard() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
@@ -16,6 +17,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <Header onCreateOrder={() => setShowCreateOrder(true)} />
+      <Toaster />
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         <PortfolioSummary />

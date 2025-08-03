@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TokenSelector } from "@/components/token-selector"
 import { X, ArrowDownUp, Clock, Zap } from "lucide-react"
 import useSendTx from "@/hooks/send-tx"
-import { toast } from "sonner"
+import { toast, useSonner } from "sonner"
 import usePrice from "@/hooks/use-price"
 import { ethers } from "ethers"
 
@@ -27,6 +27,7 @@ type TransferAsset = {
 export function CreateOrderPanel({ onClose }: CreateOrderPanelProps) {
   const { sendTx, getTokenBalance } = useSendTx();
   const { getMarketPrice } = usePrice();
+  const { toasts } = useSonner();
   const [fromToken, setFromToken] = useState<TransferAsset>({ symbol: "WETH", address: "0x8388d11770031E6a4A113A0D8aFa2226323F0bCb", decimals: 18 })
   const [toToken, setToToken] = useState<TransferAsset>({ symbol: "USDC", address: "0x5Aa8F9123B3Bdf340F33DBfA5A5A8EF6654438EC", decimals: 6 })
   const [amount, setAmount] = useState("")
@@ -48,9 +49,11 @@ export function CreateOrderPanel({ onClose }: CreateOrderPanelProps) {
 
   }, [amount, fromToken.symbol])
 
+  function removeAllToasts() {
+    toasts.forEach((t) => toast.dismiss(t.id));
+  }
   const createOrder = () => {
     console.log("Working On Orders");
-    toast.loading("Creating Order.....");
 
     if (fromToken.address === "" || toToken.address == "") {
       toast.error("Select An Asset");
@@ -83,8 +86,10 @@ export function CreateOrderPanel({ onClose }: CreateOrderPanelProps) {
     let finalAmount = Number(amount) * (10 ** fromToken.decimals);
     console.log("This is final amount >>>", finalAmount);
 
+    toast.info("Creating Order.....");
 
     sendTx(fromToken.address, toToken.address, Number(finalAmount), chunks[0], Number(finalDuration), Number(finalSlippage));
+    removeAllToasts();
   }
 
   return (
