@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { ExternalLink, Share, X, Clock, CheckCircle } from "lucide-react"
+import useSendTx from "@/hooks/send-tx"
 
 interface OrderDetailModalProps {
   order: any
@@ -13,6 +14,8 @@ interface OrderDetailModalProps {
 }
 
 export function OrderDetailModal({ order, onClose }: OrderDetailModalProps) {
+  const { cancelOrder } = useSendTx();
+
   const executions = [
     {
       chunk: 1,
@@ -107,9 +110,8 @@ export function OrderDetailModal({ order, onClose }: OrderDetailModalProps) {
                 <div key={index} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <div
-                      className={`p-2 rounded-full ${
-                        execution.status === "completed" ? "bg-[#00D395]/20" : "bg-yellow-500/20"
-                      }`}
+                      className={`p-2 rounded-full ${execution.status === "completed" ? "bg-[#00D395]/20" : "bg-yellow-500/20"
+                        }`}
                     >
                       {execution.status === "completed" ? (
                         <CheckCircle className="w-4 h-4 text-[#00D395]" />
@@ -141,7 +143,7 @@ export function OrderDetailModal({ order, onClose }: OrderDetailModalProps) {
           {/* Actions */}
           <div className="flex space-x-3">
             {order.status === "Active" && (
-              <Button variant="outline" className="border-red-700 text-red-400 hover:bg-red-900 bg-transparent">
+              <Button variant="outline" className="border-red-700 text-red-400 hover:bg-red-900 bg-transparent" onClick={() => cancelOrder(order.id)}>
                 Cancel Order
               </Button>
             )}

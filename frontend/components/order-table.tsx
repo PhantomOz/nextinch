@@ -5,58 +5,75 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Eye, X, ArrowUpDown } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useAppKitAccount } from "@reown/appkit/react"
+import useSendTx from "@/hooks/send-tx"
 
 interface OrderTableProps {
   onViewOrder: (order: any) => void
 }
 
 export function OrderTable({ onViewOrder }: OrderTableProps) {
-  const orders = [
-    {
-      id: "1",
-      pair: "USDC/ETH",
-      type: "Buy",
-      amount: "1,000 USDC",
-      progress: 65,
-      chunksExecuted: 13,
-      totalChunks: 20,
-      status: "Active",
-      created: "2024-01-15 14:30",
-    },
-    {
-      id: "2",
-      pair: "ETH/USDT",
-      type: "Sell",
-      amount: "2.5 ETH",
-      progress: 100,
-      chunksExecuted: 10,
-      totalChunks: 10,
-      status: "Completed",
-      created: "2024-01-14 09:15",
-    },
-    {
-      id: "3",
-      pair: "MATIC/USDC",
-      type: "Buy",
-      amount: "5,000 USDC",
-      progress: 30,
-      chunksExecuted: 6,
-      totalChunks: 20,
-      status: "Active",
-      created: "2024-01-13 16:45",
-    },
-    {
-      id: "4",
-      pair: "BNB/BUSD",
-      type: "Sell",
-      amount: "10 BNB",
-      progress: 0,
-      chunksExecuted: 0,
-      totalChunks: 15,
-      status: "Cancelled",
-      created: "2024-01-12 11:20",
-    },
-  ]
+  const { address, isConnected } =
+    useAppKitAccount();
+  const { getUserOrders, cancelOrder } = useSendTx();
+  const [orders, setOrders] = useState<any>([]);
+
+  // const orders = [
+  //   {
+  //     id: "1",
+  //     pair: "USDC/ETH",
+  //     type: "Buy",
+  //     amount: "1,000 USDC",
+  //     progress: 65,
+  //     chunksExecuted: 13,
+  //     totalChunks: 20,
+  //     status: "Active",
+  //     created: "2024-01-15 14:30",
+  //   },
+  //   {
+  //     id: "2",
+  //     pair: "ETH/USDT",
+  //     type: "Sell",
+  //     amount: "2.5 ETH",
+  //     progress: 100,
+  //     chunksExecuted: 10,
+  //     totalChunks: 10,
+  //     status: "Completed",
+  //     created: "2024-01-14 09:15",
+  //   },
+  //   {
+  //     id: "3",
+  //     pair: "MATIC/USDC",
+  //     type: "Buy",
+  //     amount: "5,000 USDC",
+  //     progress: 30,
+  //     chunksExecuted: 6,
+  //     totalChunks: 20,
+  //     status: "Active",
+  //     created: "2024-01-13 16:45",
+  //   },
+  //   {
+  //     id: "4",
+  //     pair: "BNB/BUSD",
+  //     type: "Sell",
+  //     amount: "10 BNB",
+  //     progress: 0,
+  //     chunksExecuted: 0,
+  //     totalChunks: 15,
+  //     status: "Cancelled",
+  //     created: "2024-01-12 11:20",
+  //   },
+  // ]
+
+  useEffect(() => {
+    if (isConnected) {
+      getUserOrders().then(orders => {
+        setOrders(orders)
+      })
+    }
+
+  }, [isConnected])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -100,7 +117,7 @@ export function OrderTable({ onViewOrder }: OrderTableProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order) => (
+              {orders?.map((order: any) => (
                 <TableRow key={order.id} className="border-slate-800">
                   <TableCell className="text-white font-medium">{order.pair}</TableCell>
                   <TableCell className={`font-medium ${getTypeColor(order.type)}`}>{order.type}</TableCell>
@@ -131,6 +148,7 @@ export function OrderTable({ onViewOrder }: OrderTableProps) {
                           size="sm"
                           variant="outline"
                           className="border-red-700 text-red-400 hover:bg-red-900 bg-transparent"
+                          onClick={() => { cancelOrder(order.id) }}
                         >
                           <X className="w-4 h-4" />
                         </Button>

@@ -16,9 +16,7 @@ export function Header({ onCreateOrder }: HeaderProps) {
   const [isConnected, setIsConnected] = useState(false)
 
   const networks = [
-    { name: "Ethereum", color: "bg-blue-500" },
-    { name: "Polygon", color: "bg-purple-500" },
-    { name: "BSC", color: "bg-yellow-500" },
+    { name: "Base Sepolia", color: "bg-blue-500" },
   ]
 
   return (
