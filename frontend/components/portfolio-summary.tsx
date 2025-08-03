@@ -2,14 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import useSendTx from "@/hooks/send-tx";
 import { useAppKitAccount } from "@reown/appkit/react"
 import { TrendingUp, Clock, CheckCircle, DollarSign } from "lucide-react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 export function PortfolioSummary() {
   const { address, isConnected } =
     useAppKitAccount();
   const { getUserOrders } = useSendTx();
-
-  const stats = [
+  const [stats, setStats] = useState([
     // {
     //   title: "Total Portfolio Value",
     //   value: "$24,567.89",
@@ -19,15 +18,15 @@ export function PortfolioSummary() {
     // },
     {
       title: "Active Orders",
-      value: "8",
-      change: "3 executing",
+      value: "-",
+      change: "-",
       icon: Clock,
       positive: true,
     },
     {
       title: "Completed Orders",
-      value: "142",
-      change: "This month: 23",
+      value: "-",
+      change: "-",
       icon: CheckCircle,
       positive: true,
     },
@@ -38,18 +37,24 @@ export function PortfolioSummary() {
     //   icon: TrendingUp,
     //   positive: true,
     // },
-  ]
+  ]);
 
   useEffect(() => {
     if (isConnected) {
       getUserOrders().then(orders => {
         const active = orders?.filter(order => order.status === "Active");
-        stats[0].value = String(active?.length) || "-";
-        stats[0].change = String(`${active?.length} executing`) || "";
+        const activeStats = stats[0];
+        activeStats.value = String(active?.length) || "-";
+        activeStats.change = String(`${active?.length} executing`) || "";
 
+        const completeStats = stats[1];
         const completed = orders?.filter(order => order.status === "Completed");
-        stats[1].value = String(completed?.length) || "-";
-        stats[1].change = "";
+        completeStats.value = String(completed?.length) || "-";
+        completeStats.change = "";
+
+        const newStats = [activeStats, completeStats];
+
+        setStats(newStats);
       })
     }
 

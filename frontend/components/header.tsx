@@ -12,7 +12,7 @@ interface HeaderProps {
 }
 
 export function Header({ onCreateOrder }: HeaderProps) {
-  const [selectedNetwork, setSelectedNetwork] = useState("Ethereum")
+  const [selectedNetwork, setSelectedNetwork] = useState("Base Sepolia")
   const [isConnected, setIsConnected] = useState(false)
 
   const networks = [
@@ -41,10 +41,10 @@ export function Header({ onCreateOrder }: HeaderProps) {
               <Plus className="w-4 h-4 mr-2" />
               Create Order
             </Button>
-            <Button variant="ghost" className="text-slate-400 hover:text-white">
+            {/* <Button variant="ghost" className="text-slate-400 hover:text-white">
               <FileText className="w-4 h-4 mr-2" />
               Docs
-            </Button>
+            </Button> */}
           </nav>
 
           {/* Network and Wallet */}
