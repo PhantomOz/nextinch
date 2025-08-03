@@ -1,4 +1,7 @@
 const Worker = require("./worker.js");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 // --- CONFIGURATION ---
 const PROVIDER_URL = "http://127.0.0.1:8545/"; // Hardhat node
@@ -9,10 +12,10 @@ const CHAIN_ID = 31337; // Hardhat
 
 // Initialize worker
 const worker = new Worker(
-  process.env.RPC_URL || PROVIDER_URL,
-  process.env.CONTRACT_ADDRESS || TWAP_ADDRESS,
-  process.env.WORKER_PK || SYSTEM_PRIVATE_KEY,
-  process.env.CHAIN_ID || CHAIN_ID,
-  process.env.INCH_API_KEY || ""
+  process.env.RPC_URL,
+  process.env.CONTRACT_ADDRESS,
+  process.env.WORKER_PK,
+  process.env.CHAIN_ID,
+  process.env.INCH_API_KEY
 );
 worker.start();

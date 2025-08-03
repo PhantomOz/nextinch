@@ -11,7 +11,8 @@ const {
 
 class Worker {
   constructor(rpcUrl, contractAddress, privateKey, networkId, authKey) {
-    this.provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+    console.log(rpcUrl, contractAddress, privateKey, networkId, authKey);
+    this.provider = new ethers.JsonRpcProvider(rpcUrl);
     this.wallet = new ethers.Wallet(privateKey, this.provider);
     this.contract = new ethers.Contract(contractAddress, abi.twap, this.wallet);
     this.networkId = networkId;
