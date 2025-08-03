@@ -18,7 +18,6 @@ export default function useSendTx() {
         const signer = await ethersProvider.getSigner();
         const twapAddress = process.env.NEXT_PUBLIC_TWAP_ADDRESS;
         // The Contract object
-        const twapContract = new Contract(twapAddress as string, twapAbi.twap, signer);
         const ercContract = new Contract(makerAsset, twapAbi.ERCABI, signer);
 
         const symbol = await ercContract.symbol();
@@ -26,15 +25,19 @@ export default function useSendTx() {
         const approvalTx = await ercContract.approve(twapAddress, BigInt(totalAmount));
         approvalTx.wait();
         console.log(approvalTx);
-        console.log(makerAsset, takerAsset, totalAmount, chunks, interval, slippageBips);
-        const twapCreateTx = await twapContract.createTWAPOrder(
-            String(makerAsset),
-            String(takerAsset),
-            BigInt(totalAmount),
-            chunks,
-            BigInt(interval),
-            slippageBips
-        );
+        const twapContract = new Contract(twapAddress as string, twapAbi.twap, signer);
+        setTimeout(async () => {
+            console.log(makerAsset, takerAsset, totalAmount, chunks, interval, slippageBips);
+            const twapCreateTx = await twapContract.createTWAPOrder(
+                String(makerAsset),
+                String(takerAsset),
+                BigInt(totalAmount),
+                chunks,
+                BigInt(interval),
+                slippageBips
+            );
+            twapCreateTx.wait();
+        }, 5000)
 
         twapContract.on(
             "ChunkScheduled",
@@ -47,9 +50,6 @@ export default function useSendTx() {
                 }
             }
         );
-
-
-        console.log(twapCreateTx);
     }
 
     const cancelOrder = async (orderId: string) => {
@@ -141,7 +141,7 @@ export default function useSendTx() {
                 progress: Number(orderdetail.chunksExecuted) * 100 / Number(orderdetail.chunks),
                 chunksExecuted: orderdetail.chunksExecuted,
                 totalChunks: orderdetail.chunks,
-                status: orderdetail.cancelled ? "Cancelled" : orderdetail.chunks === orderdetail.chunkSize ? "Completed" : "Active",
+                status: orderdetail.cancelled ? "Cancelled" : orderdetail.chunks === orderdetail.chunksExecuted ? "Completed" : "Active",
                 created: orderdetail.startTime,
                 moreDetails: orderdetail
             }
