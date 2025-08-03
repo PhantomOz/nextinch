@@ -71,6 +71,21 @@ export default function useSendTx() {
         console.log(twapOrders);
     }
 
+    const getTokenBalance = async (makerAsset: string) => {
+        if (!isConnected) {
+            toast.error("Please connect your wallet");
+            return;
+        };
+
+        const ethersProvider = new BrowserProvider(walletProvider as any);
+        const signer = await ethersProvider.getSigner();
+        const ercContract = new Contract(makerAsset, twapAbi.ERCABI, signer);
+
+        const balance = await ercContract.balanceOf(address);
+
+        return balance;
+    }
+
     const getOrderDetails = async (orderId: string) => {
         if (!isConnected) {
             toast.error("Please connect your wallet");
@@ -83,9 +98,20 @@ export default function useSendTx() {
         // The Contract object
         const twapContract = new Contract(twapAddress as string, twapAbi.twap, signer);
         const twapOrders = await twapContract.getOrderDetails(orderId);
+        twapContract.on(
+            "ChunkScheduled",
+            async (orderId, chunkIndex, executeAfter) => {
+                try {
+                    console.log(`New chunk scheduled: ${orderId} index ${chunkIndex}`);
+
+                } catch (error) {
+                    console.error(`Error processing chunk:`, error);
+                }
+            }
+        );
 
         console.log(twapOrders);
     }
 
-    return { sendTx, cancelOrder, getUserOrders, getOrderDetails };
+    return { sendTx, cancelOrder, getUserOrders, getOrderDetails, getTokenBalance };
 }

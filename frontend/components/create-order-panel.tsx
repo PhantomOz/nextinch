@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +11,8 @@ import { TokenSelector } from "@/components/token-selector"
 import { X, ArrowDownUp, Clock, Zap } from "lucide-react"
 import useSendTx from "@/hooks/send-tx"
 import { toast } from "sonner"
+import usePrice from "@/hooks/use-price"
+import { ethers } from "ethers"
 
 interface CreateOrderPanelProps {
   onClose: () => void
@@ -23,16 +25,28 @@ type TransferAsset = {
 }
 
 export function CreateOrderPanel({ onClose }: CreateOrderPanelProps) {
-  const { sendTx } = useSendTx();
-  const [fromToken, setFromToken] = useState<TransferAsset>({ symbol: "WETH", address: "", decimals: 18 })
-  const [toToken, setToToken] = useState<TransferAsset>({ symbol: "USDC", address: "", decimals: 6 })
+  const { sendTx, getTokenBalance } = useSendTx();
+  const { getMarketPrice } = usePrice();
+  const [fromToken, setFromToken] = useState<TransferAsset>({ symbol: "WETH", address: "0x8388d11770031E6a4A113A0D8aFa2226323F0bCb", decimals: 18 })
+  const [toToken, setToToken] = useState<TransferAsset>({ symbol: "USDC", address: "0x5Aa8F9123B3Bdf340F33DBfA5A5A8EF6654438EC", decimals: 6 })
   const [amount, setAmount] = useState("")
+  const [balance, setBalance] = useState("")
   const [chunks, setChunks] = useState([10])
   const [duration, setDuration] = useState("30")
   const [durationUnit, setDurationUnit] = useState("minutes")
   const [slippage, setSlippage] = useState("1")
 
   const slippageOptions = ["0.5", "1", "2", "5"]
+
+  useEffect(() => {
+    if (Number(amount) > 1) {
+      getMarketPrice(fromToken.symbol, toToken.symbol, Number(amount)).then(amt => console.log(amt));
+    }
+    if (fromToken.address) {
+      getTokenBalance(fromToken.address).then(amt => setBalance(ethers.formatUnits(amt, fromToken.decimals)));
+    }
+
+  }, [amount, fromToken.symbol])
 
   const createOrder = () => {
     console.log("Working On Orders");
@@ -98,7 +112,7 @@ export function CreateOrderPanel({ onClose }: CreateOrderPanelProps) {
                 MAX
               </Button>
             </div>
-            <div className="text-xs text-slate-400">Balance: 1,234.56 USDC</div>
+            <div className="text-xs text-slate-400">Balance: {balance} {fromToken.symbol}</div>
           </div>
 
           <div className="flex justify-center">

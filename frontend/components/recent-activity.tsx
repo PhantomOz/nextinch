@@ -1,6 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ExternalLink, ArrowUpRight, ArrowDownLeft } from "lucide-react"
 
+type Activity = {
+  type: string,
+  pair: string,
+  amount: string,
+  price: string,
+  time: number,
+  txHash: string
+}
+
 export function RecentActivity() {
   const activities = [
     {
