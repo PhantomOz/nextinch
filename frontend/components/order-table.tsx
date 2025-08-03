@@ -8,6 +8,9 @@ import { Eye, X, ArrowUpDown } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useAppKitAccount } from "@reown/appkit/react"
 import useSendTx from "@/hooks/send-tx"
+import { ethers } from "ethers";
+import twapAbi from "@/lib/abi.json";
+
 
 interface OrderTableProps {
   onViewOrder: (order: any) => void
@@ -19,59 +22,52 @@ export function OrderTable({ onViewOrder }: OrderTableProps) {
   const { getUserOrders, cancelOrder } = useSendTx();
   const [orders, setOrders] = useState<any>([]);
 
-  // const orders = [
-  //   {
-  //     id: "1",
-  //     pair: "USDC/ETH",
-  //     type: "Buy",
-  //     amount: "1,000 USDC",
-  //     progress: 65,
-  //     chunksExecuted: 13,
-  //     totalChunks: 20,
-  //     status: "Active",
-  //     created: "2024-01-15 14:30",
-  //   },
-  //   {
-  //     id: "2",
-  //     pair: "ETH/USDT",
-  //     type: "Sell",
-  //     amount: "2.5 ETH",
-  //     progress: 100,
-  //     chunksExecuted: 10,
-  //     totalChunks: 10,
-  //     status: "Completed",
-  //     created: "2024-01-14 09:15",
-  //   },
-  //   {
-  //     id: "3",
-  //     pair: "MATIC/USDC",
-  //     type: "Buy",
-  //     amount: "5,000 USDC",
-  //     progress: 30,
-  //     chunksExecuted: 6,
-  //     totalChunks: 20,
-  //     status: "Active",
-  //     created: "2024-01-13 16:45",
-  //   },
-  //   {
-  //     id: "4",
-  //     pair: "BNB/BUSD",
-  //     type: "Sell",
-  //     amount: "10 BNB",
-  //     progress: 0,
-  //     chunksExecuted: 0,
-  //     totalChunks: 15,
-  //     status: "Cancelled",
-  //     created: "2024-01-12 11:20",
-  //   },
-  // ]
+  const listenToEvent = async () => {
+    try {
+      const wsProvider = new ethers.WebSocketProvider(
+        process.env.NEXT_PUBLIC_WSS as string
+      );
+
+      const contract = new ethers.Contract(
+        process.env.NEXT_PUBLIC_TWAP_ADDRESS as string,
+        twapAbi.twap,
+        wsProvider
+      );
+
+      // listen to any event on the contract using event name
+      contract.on("ChunkScheduled",
+        async (orderId, chunkIndex, executeAfter) => {
+          getUserOrders().then(orders => {
+            setOrders(orders)
+          })
+        });
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
     if (isConnected) {
       getUserOrders().then(orders => {
         setOrders(orders)
       })
+      listenToEvent();
     }
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      const wsProvider = new ethers.WebSocketProvider(
+        process.env.NEXT_PUBLIC_WSS as string
+      );
+
+      const contract = new ethers.Contract(
+        process.env.NEXT_PUBLIC_TWAP_ADDRESS as string,
+        twapAbi.twap,
+        wsProvider
+      );
+      contract.removeAllListeners('ChunkScheduled');
+    };
 
   }, [isConnected])
 
