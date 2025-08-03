@@ -103,7 +103,7 @@ export function OrderDetailModal({ order, onClose }: OrderDetailModalProps) {
           <Separator className="bg-slate-800" />
 
           {/* Execution Timeline */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <h3 className="text-white font-medium">Execution Timeline</h3>
             <div className="space-y-3 max-h-60 overflow-y-auto">
               {executions.map((execution, index) => (
@@ -138,7 +138,7 @@ export function OrderDetailModal({ order, onClose }: OrderDetailModalProps) {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Actions */}
           <div className="flex space-x-3">
@@ -147,10 +147,10 @@ export function OrderDetailModal({ order, onClose }: OrderDetailModalProps) {
                 Cancel Order
               </Button>
             )}
-            <Button variant="outline" className="border-slate-700 text-slate-400 bg-transparent">
+            {/* <Button variant="outline" className="border-slate-700 text-slate-400 bg-transparent">
               <Share className="w-4 h-4 mr-2" />
               Share Details
-            </Button>
+            </Button> */}
           </div>
         </div>
       </DialogContent>
